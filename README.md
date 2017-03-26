@@ -69,6 +69,6 @@ Every transition is specified by x->(s,y,z) where 'x' is the character that is r
 ```
 
 \[b|x]: followed by a sequence of character denoting the initial state of the tape. 
-'x' refers to the 'default' character on the tape. This character is used to extend the tape in case the TM runs of either end of the tape.
+'x' refers to the 'default' character on the tape. This character is used to extend the tape in case the TM runs off either end of the tape.
 The characters in the sequence may be any character specified in the [a] clause.
 One character is surrounded by '[' and ']' to denote the starting position of the turing machine.
