@@ -54,7 +54,7 @@ The turing machine will terminate in this state.
 
 
 
-#### Transitions for state 'f'
+#### Transitions
 ```
 [t|a]:1->(a,0,>)|0->(b,1,>)
 ```
