@@ -124,7 +124,8 @@ impl TM {
         // Parse the alphabet
         for l in lines.iter() {
             if alphabet_r.is_match(&l) {
-                let chars: String = alphabet_r.captures(&l).unwrap().get(1).unwrap().as_str().into();
+                let chars: String =
+                    alphabet_r.captures(&l).unwrap().get(1).unwrap().as_str().into();
                 for a in chars.split(',') {
                     alphabet.push(a.chars().next().unwrap());
                 }
@@ -160,12 +161,16 @@ impl TM {
                             return Err(TMCreationError::StateDoesntExist(end_cap[2].into()));
                         }
 
-                        if !letter_exists(&alphabet, &start_letter) || !letter_exists(&alphabet, &end_letter) {
+                        if !letter_exists(&alphabet, &start_letter) ||
+                           !letter_exists(&alphabet, &end_letter) {
                             return Err(TMCreationError::LetterDoesntExist);
                         }
 
-                        let trans = Transition::new(State::new(start.clone()), start_letter, 
-                                                    State::new(end_cap[2].into()), end_letter, mov);
+                        let trans = Transition::new(State::new(start.clone()),
+                                                    start_letter,
+                                                    State::new(end_cap[2].into()),
+                                                    end_letter,
+                                                    mov);
 
                         transitions.push(trans);
                     }
@@ -200,21 +205,32 @@ impl TM {
                 if start_index == -1 {
                     return Err(TMCreationError::StartIndexNotSpecified);
                 }
-                let t = Tape { default: default, start_pos: start_index as usize, band: band_chars };
+                let t = Tape {
+                    default: default,
+                    start_pos: start_index as usize,
+                    band: band_chars,
+                };
                 tapes.push(t);
             }
         }
 
         let config = Config { max_steps: 1000000 };
 
-        Ok(TM { start: start, end: end, states: states, alphabet: alphabet, 
-             transitions: transitions, tapes: tapes, config: config })
+        Ok(TM {
+            start: start,
+            end: end,
+            states: states,
+            alphabet: alphabet,
+            transitions: transitions,
+            tapes: tapes,
+            config: config,
+        })
     }
 
     fn execute(self) -> Result<Vec<Tape>, TMCreationError> {
         let mut tapes = self.tapes.clone();
 
-'out:   for tape in tapes.iter_mut() {
+        'out: for tape in tapes.iter_mut() {
             let mut state = self.start.clone();
             let mut pos = tape.start_pos;
 
@@ -222,10 +238,14 @@ impl TM {
             while counter < self.config.max_steps {
                 println!("{:?}", tape);
                 let symbol = tape.band[pos];
-                let (new_state, new_symbol, new_pos) = match self.get_transition(&state, symbol, pos) {
-                    Some((x, y, z)) => (x,y,z),
-                    None => return Err(TMCreationError::TransitionNotSpecified(state.name.clone(), symbol)),
-                };
+                let (new_state, new_symbol, new_pos) =
+                    match self.get_transition(&state, symbol, pos) {
+                        Some((x, y, z)) => (x, y, z),
+                        None => {
+                            return Err(TMCreationError::TransitionNotSpecified(state.name.clone(),
+                                                                               symbol))
+                        }
+                    };
 
                 state = new_state;
                 tape.band[pos] = new_symbol;
@@ -240,7 +260,7 @@ impl TM {
                     pos = new_pos as usize;
                 }
 
-                if pos > tape.band.len()-1 {
+                if pos > tape.band.len() - 1 {
                     let def = tape.default;
                     let len = tape.band.len();
                     tape.band.insert(len, def);
@@ -254,7 +274,11 @@ impl TM {
         Ok(tapes)
     }
 
-    fn get_transition(&self, state: &State, symbol: char, pos: usize) -> Option<(State, char, isize)> {
+    fn get_transition(&self,
+                      state: &State,
+                      symbol: char,
+                      pos: usize)
+                      -> Option<(State, char, isize)> {
         for trans in self.transitions.iter() {
             if *state == trans.start.0 && trans.start.1 == symbol {
                 let mut new_pos = pos as isize;
@@ -311,7 +335,10 @@ struct Transition {
 
 impl Transition {
     fn new(start: State, input: char, end: State, output: char, mov: Move) -> Transition {
-        Transition { start: (start, input), end: (end, output, mov) }
+        Transition {
+            start: (start, input),
+            end: (end, output, mov),
+        }
     }
 }
 
@@ -336,4 +363,3 @@ fn get_input(args: Args) -> Option<File> {
         None
     }
 }
-
