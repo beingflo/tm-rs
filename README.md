@@ -58,9 +58,9 @@ The turing machine will terminate in this state.
 ```
 [t|a]:1->(a,0,>)|0->(b,1,>)
 ```
-\[t|f]: followed by a list of transitions separated by '|'. 
+\[t|a]: followed by a list of transitions separated by '|'. 
 'a' refers to the state the machine has to be in to act on any of these transitions. 
-Every transition is specified by x->(s,y,z) where 'x' is the character that is read, 's' the state that the TM switches to, 'y' the character that is written and 'z' the movement that TM does in this transition. 'z' may be '<' or '>'.
+Every transition is specified by 'x->(s,y,z)' where 'x' is the character that is read, 's' the state that the TM switches to, 'y' the character that is written and 'z' the movement that the TM does in this transition. 'z' may be '<' or '>'.
 
 
 #### Initial configuration of band
