@@ -17,7 +17,7 @@ Execute
 
 For instance
 ```
-    cargo run bin2dec.tm
+    cargo run examples/bin2dec.tm
 ```
 
 
