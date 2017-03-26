@@ -5,6 +5,7 @@ use std::fs::File;
 use std::io::BufReader;
 use std::io::prelude::*;
 use std::io;
+use std::collections::VecDeque;
 
 use std::env::Args;
 
@@ -33,6 +34,7 @@ enum TMCreationError {
 
     WrongLiteral,
     LetterDoesntExist,
+    StartIndexNotSpecified,
 }
 
 #[derive(Debug)]
@@ -41,7 +43,15 @@ struct TM {
     states: Vec<State>,
     alphabet: Vec<char>,
     transitions: Vec<Transition>,
+    tapes: Vec<Tape>,
     config: Config,
+}
+
+#[derive(Debug)]
+struct Tape {
+    default: char,
+    start_pos: u32,
+    band: VecDeque<char>,
 }
 
 impl TM {
@@ -57,6 +67,7 @@ impl TM {
         let alphabet_r = Regex::new(r"\[a\]:(.*)$").unwrap();
         let trans_start_r = Regex::new(r"\[t\|([^\]]*)\]:(.*)$").unwrap();
         let trans_end_r = Regex::new(r"([^-]*)->\(([^,]*),([^,]*),([^\)]*)\)").unwrap();
+        let band_r = Regex::new(r"\[b\|([^\]]*)\]:(.*)$").unwrap();
 
         let lines: Vec<String> = reader.lines().collect::<io::Result<_>>().unwrap();
 
@@ -140,10 +151,41 @@ impl TM {
             }
         }
 
-        let config = Config { max_steps: 100 };
+        let mut tapes = Vec::new();
+
+        // Parse all bands
+        for l in lines.iter() {
+            if band_r.is_match(&l) {
+                let cap = band_r.captures(&l).unwrap();
+
+                let default: char = cap[1].chars().next().unwrap();
+
+                let mut band_chars = VecDeque::new();
+
+                let mut start_index = -1;
+                for (k, i) in cap[2].chars().enumerate() {
+                    if i == '[' {
+                        start_index = (k+1) as i32;
+                        continue;
+                    }
+                    if i == ']' {
+                        continue;
+                    }
+
+                    band_chars.push_back(i);
+                }
+                if start_index == -1 {
+                    return Err(TMCreationError::StartIndexNotSpecified);
+                }
+                let t = Tape { default: default, start_pos: start_index as u32, band: band_chars };
+                tapes.push(t);
+            }
+        }
+
+        let config = Config { max_steps: 1000 };
 
         Ok(TM { start: start, states: states, alphabet: alphabet, 
-             transitions: transitions, config: config })
+             transitions: transitions, tapes: tapes, config: config })
     }
 }
 
