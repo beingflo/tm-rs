@@ -1,4 +1,4 @@
-# turing machine simulator
+# Turing machine Simulator
 
 ### Building
 Install Rust from [the Rust website](https://www.rust-lang.org/)
