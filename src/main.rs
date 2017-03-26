@@ -24,22 +24,26 @@ fn main() {
 
     let tm = TM::from_bufreader(reader).unwrap();
 
-    println!("{:#?}", tm);
+    let tapes = tm.execute().unwrap();
+    println!("{:?}", tapes);
 }
 
 #[derive(Debug)]
 enum TMCreationError {
     StartStateNotSpecified,
+    EndStateNotSpecified,
     StateDoesntExist,
 
     WrongLiteral,
     LetterDoesntExist,
     StartIndexNotSpecified,
+    TransitionNotSpecified,
 }
 
 #[derive(Debug)]
 struct TM {
     start: State,
+    end: State,
     states: Vec<State>,
     alphabet: Vec<char>,
     transitions: Vec<Transition>,
@@ -47,10 +51,10 @@ struct TM {
     config: Config,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Tape {
     default: char,
-    start_pos: u32,
+    start_pos: usize,
     band: VecDeque<char>,
 }
 
@@ -61,8 +65,10 @@ impl TM {
         let mut transitions = Vec::new();
 
         let mut start = State { name: "".into() };
+        let mut end = State { name: "".into() };
 
         let start_r = Regex::new(r"\[e\]:(.*)$").unwrap();
+        let end_r = Regex::new(r"\[x\]:(.*)$").unwrap();
         let states_r = Regex::new(r"\[s\]:(.*)$").unwrap();
         let alphabet_r = Regex::new(r"\[a\]:(.*)$").unwrap();
         let trans_start_r = Regex::new(r"\[t\|([^\]]*)\]:(.*)$").unwrap();
@@ -95,6 +101,23 @@ impl TM {
         }
 
         if !state_exists(&states, &start.name) {
+            return Err(TMCreationError::StateDoesntExist);
+        }
+
+        // Parse terminating state
+        let mut found = false;
+        for l in lines.iter() {
+            if end_r.is_match(&l) {
+                end.name = end_r.captures(&l).unwrap().get(1).unwrap().as_str().into();
+                found = true;
+            }
+        }
+
+        if !found {
+            return Err(TMCreationError::EndStateNotSpecified);
+        }
+
+        if !state_exists(&states, &end.name) {
             return Err(TMCreationError::StateDoesntExist);
         }
 
@@ -165,7 +188,7 @@ impl TM {
                 let mut start_index = -1;
                 for (k, i) in cap[2].chars().enumerate() {
                     if i == '[' {
-                        start_index = (k+1) as i32;
+                        start_index = k as i32;
                         continue;
                     }
                     if i == ']' {
@@ -177,15 +200,72 @@ impl TM {
                 if start_index == -1 {
                     return Err(TMCreationError::StartIndexNotSpecified);
                 }
-                let t = Tape { default: default, start_pos: start_index as u32, band: band_chars };
+                let t = Tape { default: default, start_pos: start_index as usize, band: band_chars };
                 tapes.push(t);
             }
         }
 
         let config = Config { max_steps: 1000 };
 
-        Ok(TM { start: start, states: states, alphabet: alphabet, 
+        Ok(TM { start: start, end: end, states: states, alphabet: alphabet, 
              transitions: transitions, tapes: tapes, config: config })
+    }
+
+    fn execute(self) -> Result<Vec<Tape>, TMCreationError> {
+        let mut tapes = self.tapes.clone();
+
+'out:   for tape in tapes.iter_mut() {
+            let mut state = self.start.clone();
+            let mut pos = tape.start_pos;
+
+            let mut counter = 0;
+            while counter < self.config.max_steps {
+                let symbol = tape.band[pos];
+                let (new_state, new_symbol, new_pos) = match self.get_transition(&state, symbol, pos) {
+                    Some((x, y, z)) => (x,y,z),
+                    None => return Err(TMCreationError::TransitionNotSpecified),
+                };
+
+                state = new_state;
+                tape.band[pos] = new_symbol;
+
+                if state == self.end {
+                    continue 'out;
+                }
+
+                if new_pos < 0 {
+                    tape.band.insert(0, tape.default);
+                } else {
+                    pos = new_pos as usize;
+                }
+
+                if pos > tape.band.len()-1 {
+                    let def = tape.default;
+                    let len = tape.band.len();
+                    tape.band.insert(len, def);
+                }
+
+
+                counter += 1;
+            }
+        }
+
+        Ok(tapes)
+    }
+
+    fn get_transition(&self, state: &State, symbol: char, pos: usize) -> Option<(State, char, isize)> {
+        for trans in self.transitions.iter() {
+            if *state == trans.start.0 && trans.start.1 == symbol {
+                let mut new_pos = pos as isize;
+                if trans.end.2 == Move::Left {
+                    new_pos -= 1;
+                } else {
+                    new_pos += 1;
+                }
+                return Some((trans.end.0.clone(), trans.end.1, new_pos));
+            }
+        }
+        None
     }
 }
 
@@ -211,7 +291,7 @@ fn letter_exists(alphabet: &Vec<char>, a: &char) -> bool {
     exists
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 struct State {
     name: String,
 }
@@ -234,7 +314,7 @@ impl Transition {
     }
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 enum Move {
     Left,
     Right,
