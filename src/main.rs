@@ -32,12 +32,12 @@ fn main() {
 enum TMCreationError {
     StartStateNotSpecified,
     EndStateNotSpecified,
-    StateDoesntExist,
+    StateDoesntExist(String),
 
     WrongLiteral,
     LetterDoesntExist,
     StartIndexNotSpecified,
-    TransitionNotSpecified,
+    TransitionNotSpecified(String, char),
 }
 
 #[derive(Debug)]
@@ -101,7 +101,7 @@ impl TM {
         }
 
         if !state_exists(&states, &start.name) {
-            return Err(TMCreationError::StateDoesntExist);
+            return Err(TMCreationError::StateDoesntExist(start.name.clone()));
         }
 
         // Parse terminating state
@@ -118,7 +118,7 @@ impl TM {
         }
 
         if !state_exists(&states, &end.name) {
-            return Err(TMCreationError::StateDoesntExist);
+            return Err(TMCreationError::StateDoesntExist(end.name.clone()));
         }
 
         // Parse the alphabet
@@ -138,7 +138,7 @@ impl TM {
                 let start: String = cap[1].into();
 
                 if !state_exists(&states, &start) {
-                    return Err(TMCreationError::StateDoesntExist);
+                    return Err(TMCreationError::StateDoesntExist(start.clone()));
                 }
 
                 let ends: String = cap[2].into();
@@ -157,7 +157,7 @@ impl TM {
                         };
 
                         if !state_exists(&states, &end_cap[2].into()) {
-                            return Err(TMCreationError::StateDoesntExist);
+                            return Err(TMCreationError::StateDoesntExist(end_cap[2].into()));
                         }
 
                         if !letter_exists(&alphabet, &start_letter) || !letter_exists(&alphabet, &end_letter) {
@@ -205,7 +205,7 @@ impl TM {
             }
         }
 
-        let config = Config { max_steps: 1000 };
+        let config = Config { max_steps: 1000000 };
 
         Ok(TM { start: start, end: end, states: states, alphabet: alphabet, 
              transitions: transitions, tapes: tapes, config: config })
@@ -220,10 +220,11 @@ impl TM {
 
             let mut counter = 0;
             while counter < self.config.max_steps {
+                println!("{:?}", tape);
                 let symbol = tape.band[pos];
                 let (new_state, new_symbol, new_pos) = match self.get_transition(&state, symbol, pos) {
                     Some((x, y, z)) => (x,y,z),
-                    None => return Err(TMCreationError::TransitionNotSpecified),
+                    None => return Err(TMCreationError::TransitionNotSpecified(state.name.clone(), symbol)),
                 };
 
                 state = new_state;
