@@ -34,7 +34,7 @@ For instance
 ```
 [a]:0,1
 ```
-\[a]: followed by a comma separated list of the letters, these may be any single character except 'c', '[' and ']'.
+\[a]: followed by a comma separated list of the letters, these may be any single character except ',', '[' and ']'.
 
 
 #### Start state
