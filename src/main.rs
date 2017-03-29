@@ -1,21 +1,21 @@
 extern crate regex;
 
+mod input;
 
-use std::fs::File;
+use input::get_input;
 use std::io::BufReader;
+use std::fs::File;
 use std::io::prelude::*;
 use std::io;
 use std::collections::VecDeque;
-
-use std::env::Args;
 
 use regex::Regex;
 
 fn main() {
     let input = match get_input(std::env::args()) {
-        Some(x) => x,
-        None => {
-            println!("Specify input");
+        Ok(x) => x,
+        Err(e) => {
+            println!("{}", e);
             return;
         }
     };
@@ -351,15 +351,4 @@ enum Move {
 #[derive(Debug, Copy, Clone)]
 struct Config {
     max_steps: u32,
-}
-
-fn get_input(args: Args) -> Option<File> {
-    if let Some(x) = args.skip(1).next() {
-        match File::open(x) {
-            Ok(f) => Some(f),
-            Err(_) => None,
-        }
-    } else {
-        None
-    }
 }
