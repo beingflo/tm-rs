@@ -4,7 +4,7 @@ use std::io;
 use std::fmt;
 
 pub fn get_input(args: Args) -> Result<File, InputError> {
-    let arg = args.skip(1).next().ok_or(InputError::NoArgument)?; 
+    let arg = args.skip(1).next().ok_or(InputError::NoArgument)?;
     Ok(File::open(arg)?)
 }
 

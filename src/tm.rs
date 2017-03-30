@@ -244,14 +244,10 @@ impl TM {
         while counter < self.config.max_steps {
             println!("{:?}", tape);
             let symbol = tape.band[pos];
-            let (new_state, new_symbol, new_pos) =
-                match self.get_transition(&state, symbol, pos) {
-                    Some((x, y, z)) => (x, y, z),
-                    None => {
-                        return Err(TMError::TransitionNotSpecified(state.name.clone(),
-                                                                           symbol))
-                    }
-                };
+            let (new_state, new_symbol, new_pos) = match self.get_transition(&state, symbol, pos) {
+                Some((x, y, z)) => (x, y, z),
+                None => return Err(TMError::TransitionNotSpecified(state.name.clone(), symbol)),
+            };
 
             state = new_state;
             tape.band[pos] = new_symbol;

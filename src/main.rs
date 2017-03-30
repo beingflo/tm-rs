@@ -35,4 +35,3 @@ fn main() {
     let tape = tm.execute(tapes[0].clone()).unwrap();
     println!("{:?}", tape);
 }
-
