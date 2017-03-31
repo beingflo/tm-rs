@@ -1,5 +1,8 @@
 # Turing machine to convert binary to decimal with a single state
 
+# Maximum number of simulation steps
+[c]:10000
+
 # States
 [s]:f,t
 
@@ -17,4 +20,3 @@
 
 # Initial configuration of band
 [b|_]:___[I]IIOIIII~~~~~
-

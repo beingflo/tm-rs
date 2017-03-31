@@ -29,9 +29,27 @@ fn main() {
         }
     };
 
-    let mut tm = TM::from_string(input.clone()).unwrap();
-    let tapes = Tape::from_string(input).unwrap();
+    let mut tm = match TM::from_string(input.clone()) {
+        Ok(x) => x,
+        Err(e) => {
+            println!("{}", e);
+            return;
+        },
+    };
 
-    let tape = tm.execute(tapes[0].clone()).unwrap();
-    println!("{:?}", tape);
+    let tapes = match Tape::from_string(input) {
+        Ok(x) => x,
+        Err(e) => {
+            println!("{}", e);
+            return;
+        },
+    };
+
+    let mut counter = 1;
+    for t in tapes {
+        let tape = tm.execute(t).unwrap();
+        println!("Tape {}: {}", counter, tape);
+
+        counter += 1;
+    }
 }
