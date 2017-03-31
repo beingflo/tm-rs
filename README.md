@@ -23,6 +23,12 @@ For instance
 
 ### .tm Syntax
 
+### Config
+```
+[c]:10000
+```
+\[c]: followed by a number specifying how many simulation steps should be performed as most, before the TM stops.
+
 #### States
 ```
 [s]:a,b
