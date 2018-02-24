@@ -27,7 +27,7 @@ For instance
 ```
 [c]:10000
 ```
-\[c]: followed by a number specifying how many simulation steps should be performed as most, before the TM stops.
+\[c]: followed by a number specifying how many simulation steps should be performed at most, before the TM stops.
 
 #### States
 ```
